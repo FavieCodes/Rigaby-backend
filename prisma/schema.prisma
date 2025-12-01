@@ -1,0 +1,319 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  READER
+  CONTENT_MANAGER
+  ADMIN
+}
+
+enum SubscriptionTier {
+  ENTRY
+  INTERMEDIATE
+  PRO
+}
+
+enum TransactionType {
+  TASK_REWARD
+  TOURNAMENT_WIN
+  REFERRAL_BONUS
+  SUBSCRIPTION_PAYMENT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum TaskType {
+  READING
+  VIDEO
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum TournamentType {
+  WEEKLY
+  MONTHLY
+  SPECIAL
+}
+
+enum TournamentStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ContentType {
+  BOOK
+  VIDEO
+  ARTICLE
+}
+
+enum ReferralBonusType {
+  SUBSCRIPTION
+  TASK_REWARD
+}
+
+enum ReferralBonusStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model User {
+  id                       String    @id @default(cuid())
+  email                    String    @unique
+  phone                    String?   @unique
+  password                 String
+  firstName                String
+  lastName                 String
+  role                     UserRole  @default(READER)
+  isActive                 Boolean   @default(true)
+  isEmailVerified          Boolean   @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
+  wallet                   Wallet?
+
+  // Subscription
+  subscriptionTier   SubscriptionTier @default(ENTRY)
+  subscriptionExpiry DateTime?
+
+  // Referral system
+  referralCode    String  @unique @default(cuid())
+  referredById    String? // ID of the referrer user
+  referralBonus   Decimal @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tasks             Task[]
+  tournamentEntries TournamentEntry[]
+  readingSessions   ReadingSession[]
+
+  // Referral relations - self-referencing
+  referrer  User?  @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals User[] @relation("UserReferrals")
+
+  // Referral bonus relations
+  referralBonusesGiven ReferralBonus[] @relation("ReferralBonusReferrer")
+  referralBonusesReceived ReferralBonus[] @relation("ReferralBonusReferred")
+
+  @@map("users")
+}
+
+model Wallet {
+  id      String  @id @default(cuid())
+  userId  String  @unique
+  balance Decimal @default(0)
+  locked  Decimal @default(0) // For pending withdrawals
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  walletId    String
+  type        TransactionType
+  amount      Decimal
+  description String
+  status      TransactionStatus @default(COMPLETED)
+  metadata    Json? // Store referral data, subscription details, etc.
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("transactions")
+}
+
+model ReferralBonus {
+  id              String   @id @default(cuid())
+  referrerId      String   // User who gets the bonus
+  referredUserId  String   // User who was referred
+  level           Int      // Level in referral chain (1-5)
+  bonusPercentage Decimal  // 25% for direct, 3%, 2%, 1%, 1%, 1% for levels
+  amount          Decimal  // Actual bonus amount
+  type            ReferralBonusType // SUBSCRIPTION or TASK_REWARD
+  status          ReferralBonusStatus @default(PENDING)
+  metadata        Json?    // Store additional referral data
+
+  // Relations
+  referrer     User   @relation("ReferralBonusReferrer", fields: [referrerId], references: [id])
+  referredUser User   @relation("ReferralBonusReferred", fields: [referredUserId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([referrerId, referredUserId, type])
+  @@map("referral_bonuses")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  userId      String
+  contentId   String?
+  type        TaskType
+  title       String
+  description String?
+  contentData String? // Renamed from 'content' to avoid conflict
+  status      TaskStatus @default(PENDING)
+  completedAt DateTime?
+  reward      Decimal    @default(0)
+  metadata    Json?      // Store task-specific data
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   Content?   @relation(fields: [contentId], references: [id])
+  questions Question[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  taskId        String
+  question      String
+  options       String[] // JSON array of options
+  correctAnswer String
+  userAnswer    String?
+  isCorrect     Boolean?
+  metadata      Json?    // Store question-specific data
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("questions")
+}
+
+model Tournament {
+  id              String           @id @default(cuid())
+  title           String
+  description     String?
+  type            TournamentType
+  entryFee        Decimal          @default(0)
+  prizePool       Decimal          @default(0)
+  startDate       DateTime
+  endDate         DateTime
+  status          TournamentStatus @default(UPCOMING)
+  maxParticipants Int?
+  metadata        Json?            // Store tournament-specific data
+
+  entries   TournamentEntry[]
+  questions TournamentQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tournaments")
+}
+
+model TournamentEntry {
+  id           String @id @default(cuid())
+  tournamentId String
+  userId       String
+  score        Int    @default(0)
+  timeTaken    Int? // Time in seconds
+  rank         Int?
+  metadata     Json? // Store entry-specific data
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([tournamentId, userId])
+  @@map("tournament_entries")
+}
+
+model TournamentQuestion {
+  id            String   @id @default(cuid())
+  tournamentId  String
+  question      String
+  options       String[] // JSON array of options
+  correctAnswer String
+  points        Int      @default(1)
+  metadata      Json?    // Store question-specific data
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("tournament_questions")
+}
+
+model Content {
+  id              String      @id @default(cuid())
+  title           String
+  description     String?
+  type            ContentType
+  category        String
+  source          String?     // Author, publisher, or video creator
+  duration        Int?        // In minutes for videos/audio
+  pages           Int?        // For books
+  isActive        Boolean     @default(true)
+  metadata        Json?       // Store content-specific data
+
+  // Reading analytics
+  readCount      Int      @default(0) // Total number of reads
+  currentReaders Int      @default(0) // Current active readers
+  
+  // Cloudinary fields
+  fileUrl       String?   // Cloudinary file URL
+  thumbnailUrl  String?   // Thumbnail for videos/images
+  publicId      String?   // Cloudinary public ID for file management
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tasks Task[]
+  readingSessions ReadingSession[]
+
+  @@map("contents")
+}
+
+model ReadingSession {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  duration  Int?     // Duration in seconds
+  isActive  Boolean  @default(true)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId, isActive])
+  @@map("reading_sessions")
+}
