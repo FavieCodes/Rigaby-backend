@@ -1,62 +1,83 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
-
-let cachedApp;
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
+import helmet from 'helmet';
 
 async function bootstrap() {
-  if (!cachedApp) {
-    const expressApp = express();
-    const app = await NestFactory.create(
-      AppModule,
-      new ExpressAdapter(expressApp),
-    );
-
-    // Global validation pipe
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-
-    // CORS
-    app.enableCors();
-
-    // Swagger documentation
-    const config = new DocumentBuilder()
-      .setTitle('Rigaby API')
-      .setDescription('The Rigaby platform API documentation')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
-
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api-docs', app, document);
-
-    await app.init();
-    cachedApp = expressApp;
-  }
-  return cachedApp;
-}
-
-// For local development
-if (require.main === module) {
-  const port = process.env.PORT || 3005;
-  bootstrap().then((app) => {
-    app.listen(port, () => {
-      console.log(`Application is running on: http://localhost:${port}`);
-      console.log(`Swagger documentation: http://localhost:${port}/api`);
-    });
+  const logger = new Logger('Main');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
+
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT', 3005);
+
+  // 1. GLOBAL SETUP (Prefix, CORS, Security)
+
+  app.setGlobalPrefix('api/v1');
+  app.use(helmet());
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:3001',
+      'http://localhost:4200',
+      'http://localhost:8080',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'X-Requested-With',
+    ],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
+  // Enable global DTO/Payload validation
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+      enableImplicitConversion: true,
+    },
+    }),
+  );
+
+
+  // ==========================================================
+  // 5. SWAGGER DOCUMENTATION
+  // ==========================================================
+  const config = new DocumentBuilder()
+    .setTitle('Storytime API')
+    .setDescription('The Storytime API documentation')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
+
+  // ==========================================================
+  // 6. START APPLICATION
+  // ==========================================================
+  await app.listen(port);
+  logger.log(`Application is running on: ${await app.getUrl()}`);
+  logger.log(
+    `Swagger documentation is available at: http://localhost:${port}/docs`,
+  );
 }
 
-// Export for Vercel serverless
-export default async (req, res) => {
-  const app = await bootstrap();
-  app(req, res);
-};
+bootstrap();
