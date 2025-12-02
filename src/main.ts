@@ -57,8 +57,8 @@ async function bootstrap() {
   // 5. SWAGGER DOCUMENTATION
   // ==========================================================
   const config = new DocumentBuilder()
-    .setTitle('Storytime API')
-    .setDescription('The Storytime API documentation')
+    .setTitle('Rigaby API')
+    .setDescription('The RIgaby API documentation')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
