@@ -21,6 +21,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
+       https://rigaby-backend.vercel.app/,
+      https://rigaby-backend.onrender.com/,
       'http://localhost:5173',
       'http://localhost:3001',
       'http://localhost:4200',
