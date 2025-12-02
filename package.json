@@ -12,7 +12,7 @@
     "prisma:db:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "start:prod": "node dist/main",
-    "render-build": "pnpm install && pnpm prisma:generate && pnpm build && pnpm prisma:migrate:deploy"
+    "render-build": "pnpm install && pnpm prisma:generate && pnpm build && pnpm prisma:migrate:deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
