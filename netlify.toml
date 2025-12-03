@@ -1,0 +1,24 @@
+[build]
+  command = "npm run build && npm run netlify-build"
+  functions = "netlify/functions"
+  publish = "dist"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/main/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/main"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+  
+[build.environment]
+  NODE_VERSION = "20"
+  PRISMA_CLI_BINARY_TARGETS = "rhel-openssl-3.0.x"
+
+[functions."main"]
+  node_bundler = "esbuild"
