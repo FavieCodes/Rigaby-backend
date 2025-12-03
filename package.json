@@ -14,7 +14,6 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "render-build": "pnpm install && pnpm prisma:generate && pnpm build && pnpm prisma:db:push",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -24,7 +23,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && npm run build"
+    "vercel-build": "prisma generate && npm run build",
+    "netlify-build":"pnpm install && pnpm prisma:generate && pnpm build && pnpm prisma:db:push"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
