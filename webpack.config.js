@@ -2,13 +2,17 @@ const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
-  entry: './src/serverless.ts',
+  entry: './src/main.ts',
   target: 'node',
-  externals: [nodeExternals()],
+  externals: [
+    nodeExternals({
+      allowlist: [/^@nestjs/],
+    }),
+  ],
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'serverless.js',
-    libraryTarget: 'commonjs2'
+    filename: 'main.js',
+    libraryTarget: 'commonjs2',
   },
   resolve: {
     extensions: ['.ts', '.js'],
@@ -22,5 +26,9 @@ module.exports = {
       },
     ],
   },
+  optimization: {
+    minimize: false, // Disable minification for debugging
+  },
   mode: 'production',
+  stats: 'errors-only',
 };

@@ -6,20 +6,22 @@
 [build.environment]
   NODE_VERSION = "18"
   NODE_ENV = "production"
+  # Add Node options to handle memory issues
+  NODE_OPTIONS = "--max-old-space-size=4096"
 
-# For local development
+# Development server
 [dev]
   command = "npm run start:dev"
   port = 3005
   publish = "dist"
 
-# Redirect all traffic to function
+# API redirects
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
 
-# For SPA routing - optional
+# Root redirect for SPA
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/api/:splat"
@@ -28,15 +30,31 @@
 [functions]
   node_bundler = "esbuild"
   
-  # Prisma needs these
+  # Increase timeout for Nest.js cold starts
+  timeout = 30
+  
+  # Externalize problematic modules
   external_node_modules = [
     "@prisma/client",
     "@prisma/engines",
-    "prisma"
+    "prisma",
+    "class-transformer/storage",
+    "@grpc/grpc-js",
+    "@grpc/proto-loader",
+    "kafkajs",
+    "mqtt",
+    "ioredis",
+    "nats",
+    "amqplib",
+    "amqp-connection-manager",
+    "@nestjs/microservices",
+    "@nestjs/websockets",
+    "@nestjs/platform-socket.io"
   ]
   
   included_files = [
     "node_modules/.prisma/**/*",
     "node_modules/@prisma/client/**/*",
-    "node_modules/@prisma/engines/**/*"
+    "node_modules/@prisma/engines/**/*",
+    "prisma/schema.prisma"
   ]
