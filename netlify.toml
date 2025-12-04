@@ -22,3 +22,7 @@
 
 [functions."main"]
   node_bundler = "esbuild"
+  included_files = ["main.js"]
+
+[functions."main"]
+  external_node_modules = ["*"]
