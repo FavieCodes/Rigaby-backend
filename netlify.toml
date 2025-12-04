@@ -27,42 +27,10 @@
   status = 200
 
 [functions]
+  # Don't use timeout here, use defaults
   node_bundler = "esbuild"
   
   # Externalize problematic modules
-  external_node_modules = [
-    "@prisma/client",
-    "@prisma/engines",
-    "prisma",
-    "class-transformer/storage",
-    "@grpc/grpc-js",
-    "@grpc/proto-loader",
-    "kafkajs",
-    "mqtt",
-    "ioredis",
-    "nats",
-    "amqplib",
-    "amqp-connection-manager",
-    "@nestjs/microservices",
-    "@nestjs/websockets",
-    "@nestjs/platform-socket.io"
-  ]
-  
-  included_files = [
-    "node_modules/.prisma/**/*",
-    "node_modules/@prisma/client/**/*",
-    "node_modules/@prisma/engines/**/*",
-    "prisma/schema.prisma"
-  ]
-
-# Function-specific configuration for API function
-[[functions]]
-  path = "netlify/functions/api.ts"
-  node_bundler = "esbuild"
-  
-  # Increase timeout for Nest.js cold starts
-  timeout = 30
-  
   external_node_modules = [
     "@prisma/client",
     "@prisma/engines",
