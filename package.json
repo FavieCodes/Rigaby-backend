@@ -6,7 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+   "build": "nest build",
+    "vercel-build": "prisma generate && nest build --webpack --webpackPath webpack.config.js",
+    "netlify-build": "prisma generate && nest build",
+    "build:vercel": "prisma generate && NODE_ENV=production nest build --path src/serverless.ts",
+    "build:netlify": "prisma generate && NODE_ENV=production nest build",
+    "prisma:copy-netlify": "node prisma/scripts/netlify-setup.js",
     "start": "nest start",
     "start:prod": "node dist/main",
     "start:dev": "nest start --watch",
@@ -22,8 +27,6 @@
     "prisma:db:push": "prisma db push --accept-data-loss",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && nest build",
-    "netlify-build": "prisma generate && nest build",
     "prisma:copy": "cp -R node_modules/.prisma netlify/functions/ && cp -R node_modules/@prisma netlify/functions/node_modules/"
   },
   "dependencies": {

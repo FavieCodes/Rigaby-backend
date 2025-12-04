@@ -7,7 +7,7 @@ import express from 'express';
 import serverless from 'serverless-http';
 import helmet from 'helmet';
 
-let cachedServer;
+let cachedServer: any;
 
 async function bootstrap() {
   if (!cachedServer) {
@@ -21,6 +21,7 @@ async function bootstrap() {
       },
     );
 
+    // Set global prefix - Netlify adds /.netlify/functions/api automatically
     app.setGlobalPrefix('api/v1');
     app.use(helmet());
 
@@ -49,19 +50,22 @@ async function bootstrap() {
       }),
     );
 
-    const config = new DocumentBuilder()
-      .setTitle('Rigaby API')
-      .setDescription('The Rigaby API documentation')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+    // Conditional Swagger setup
+    if (process.env.NETLIFY_DEV || process.env.NODE_ENV === 'development') {
+      const config = new DocumentBuilder()
+        .setTitle('Rigaby API')
+        .setDescription('The Rigaby API documentation')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .build();
 
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document, {
-      swaggerOptions: {
-        persistAuthorization: true,
-      },
-    });
+      const document = SwaggerModule.createDocument(app, config);
+      SwaggerModule.setup('api/v1/docs', app, document, {
+        swaggerOptions: {
+          persistAuthorization: true,
+        },
+      });
+    }
 
     await app.init();
     cachedServer = serverless(expressApp);
@@ -70,7 +74,7 @@ async function bootstrap() {
   return cachedServer;
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event: any, context: any) => {
   const server = await bootstrap();
   return server(event, context);
 };

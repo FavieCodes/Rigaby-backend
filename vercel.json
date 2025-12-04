@@ -2,20 +2,39 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/serverless.js",
-      "use": "@vercel/node"
+      "src": "src/serverless.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "node_modules/.prisma/**/*",
+          "node_modules/@prisma/client/**/*"
+        ]
+      }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "dist/serverless.js"
+      "src": "/api/(.*)",
+      "dest": "/src/serverless.ts"
+    },
+    {
+      "src": "/docs",
+      "dest": "/src/serverless.ts"
+    },
+    {
+      "src": "/",
+      "dest": "/src/serverless.ts"
     }
   ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/dist/serverless"
-    }
-  ]
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "CLOUDINARY_CLOUD_NAME": "@cloudinary_cloud_name",
+    "CLOUDINARY_API_KEY": "@cloudinary_api_key",
+    "CLOUDINARY_API_SECRET": "@cloudinary_api_secret",
+    "EMAIL_HOST": "@email_host",
+    "EMAIL_PORT": "@email_port",
+    "EMAIL_USER": "@email_user",
+    "EMAIL_PASS": "@email_pass"
+  }
 }
