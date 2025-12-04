@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+netlify/functions/main/node_modules
+netlify/functions/main/package-lock.json
+
 # Logs
 logs
 *.log
