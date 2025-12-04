@@ -19,3 +19,4 @@
 
 [functions."main"]
   node_bundler = "none"
+  included_files = ["main.js", "../../node_modules/**"]

@@ -5,19 +5,9 @@ module.exports = {
   entry: './src/lambda.ts',
   target: 'node',
   mode: 'production',
-  externals: [
-    nodeExternals({
-      // Bundle everything EXCEPT these native modules
-      allowlist: [
-        /.*/,  // Bundle everything by default
-      ],
-      // Only externalize these specific packages that must be external
-      externalsPresets: { node: true }
-    }),
-    // Explicitly externalize only truly problematic packages
-    '@prisma/engines',
-    'prisma',
-  ],
+  externals: [nodeExternals({
+    allowlist: ['@vendia/serverless-express', 'class-transformer', 'class-validator']
+  })],
   module: {
     rules: [
       {
