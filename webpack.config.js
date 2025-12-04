@@ -1,13 +1,9 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/lambda.ts',
   target: 'node',
   mode: 'production',
-  externals: [nodeExternals({
-    allowlist: ['@vendia/serverless-express', 'class-transformer', 'class-validator']
-  })],
   module: {
     rules: [
       {
@@ -30,11 +26,16 @@ module.exports = {
     },
   },
   output: {
-    path: path.resolve(__dirname, 'netlify/functions/main'),  // Changed: output to main directory
+    path: path.resolve(__dirname, 'netlify/functions/main'),
     filename: 'main.js',
     libraryTarget: 'commonjs2',
   },
   optimization: {
     minimize: false,
+  },
+  // Bundle all dependencies except those that should be external
+  externals: {
+    // AWS SDK is available in Lambda environment
+    'aws-sdk': 'aws-sdk',
   },
 };
