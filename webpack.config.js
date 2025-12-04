@@ -5,10 +5,19 @@ module.exports = {
   entry: './src/lambda.ts',
   target: 'node',
   mode: 'production',
-  externals: [nodeExternals({
-    // Include these in the bundle (they're needed at runtime)
-    allowlist: ['@vendia/serverless-express', 'class-transformer', 'class-validator']
-  })],
+  externals: [
+    nodeExternals({
+      // Bundle everything EXCEPT these native modules
+      allowlist: [
+        /.*/,  // Bundle everything by default
+      ],
+      // Only externalize these specific packages that must be external
+      externalsPresets: { node: true }
+    }),
+    // Explicitly externalize only truly problematic packages
+    '@prisma/engines',
+    'prisma',
+  ],
   module: {
     rules: [
       {
@@ -31,7 +40,7 @@ module.exports = {
     },
   },
   output: {
-    path: path.resolve(__dirname, 'netlify/functions/main'), // Output directly to Netlify functions
+    path: path.resolve(__dirname, 'netlify/functions'),
     filename: 'main.js',
     libraryTarget: 'commonjs2',
   },
