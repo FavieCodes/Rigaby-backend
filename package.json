@@ -23,7 +23,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && nest build",
-    "netlify-build": "prisma generate && nest build"
+    "netlify-build": "prisma generate && pnpm prisma:copy && nest build",
+    "prisma:copy": "cp -R node_modules/.prisma netlify/functions/ && cp -R node_modules/@prisma netlify/functions/node_modules/"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
