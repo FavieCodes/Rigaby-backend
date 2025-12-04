@@ -1,3 +1,2 @@
-const { handler } = require('./dist/lambda');
-
+const { handler } = require('./lambda');
 exports.handler = handler;

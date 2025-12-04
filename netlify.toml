@@ -16,5 +16,3 @@
 [build.environment]
   NODE_VERSION = "20"
   PRISMA_CLI_BINARY_TARGETS = "rhel-openssl-3.0.x"
-
-[functions]
