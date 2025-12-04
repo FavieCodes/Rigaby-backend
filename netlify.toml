@@ -14,15 +14,5 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@prisma/client", ".prisma/client"]
-  
-  # Add this section to mark optional dependencies as external
-  [functions."*"]
-    external_node_modules = [
-      "@prisma/client",
-      ".prisma/client",
-      "@nestjs/microservices",
-      "@nestjs/websockets",
-      "@nestjs/platform-socket.io",
-      "class-transformer/storage"
-    ]
+  # Don't externalize Prisma - let it be bundled
+  included_files = ["node_modules/.prisma/**", "node_modules/@prisma/client/**", "prisma/**"]
