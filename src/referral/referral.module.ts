@@ -5,9 +5,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { WalletModule } from 'src/wallet/wallet.module';
 
 @Module({
-  imports: [PrismaModule,
-     WalletModule,
-  ],
+  imports: [PrismaModule, WalletModule],
   controllers: [ReferralController],
   providers: [ReferralService],
   exports: [ReferralService],

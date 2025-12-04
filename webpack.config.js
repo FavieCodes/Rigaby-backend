@@ -30,7 +30,7 @@ module.exports = {
     },
   },
   output: {
-    path: path.resolve(__dirname, 'netlify/functions'),
+    path: path.resolve(__dirname, 'netlify/functions/main'),  // Changed: output to main directory
     filename: 'main.js',
     libraryTarget: 'commonjs2',
   },

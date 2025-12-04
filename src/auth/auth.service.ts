@@ -277,9 +277,9 @@ export class AuthService {
       where: { email },
     });
 
+    // Check if the email exists in the system
     if (!user) {
-      // Don't reveal whether email exists or not
-      return { message: 'If the email exists, a password reset code has been sent' };
+      throw new NotFoundException('Email is not registered. Please enter a valid email address.');
     }
 
     // Generate 6-digit password reset token
@@ -301,7 +301,7 @@ export class AuthService {
       throw new BadRequestException('Failed to send password reset email');
     }
 
-    return { message: 'If the email exists, a password reset code has been sent' };
+    return { message: 'Password reset code has been sent to your email' };
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{ message: string }> {
