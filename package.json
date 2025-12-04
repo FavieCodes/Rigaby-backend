@@ -7,9 +7,7 @@
   "license": "UNLICENSED",
     "scripts": {
     "build": "nest build",
-    "postbuild": "mkdir -p netlify/functions/main && cp -r dist netlify/functions/main/ && cp -r prisma netlify/functions/main/prisma 2>/dev/null || true && cp package.json netlify/functions/main/package.json",
     "netlify-build": "pnpm run prisma:generate && pnpm run build && pnpm run copy-deps",
-    "copy-deps": "cp -r node_modules netlify/functions/main/node_modules",
     "build:nest": "nest build",
     "start": "nest start",
     "start:prod": "node dist/main",
