@@ -3,8 +3,8 @@ import { AppModule } from '../../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as express from 'express';
-import * as serverless from 'serverless-http';
+import express from 'express';
+import serverless from 'serverless-http';
 import helmet from 'helmet';
 
 let cachedServer;
