@@ -14,7 +14,8 @@
 
 [functions]
   node_bundler = "esbuild"
+  # Include Prisma generated files
   included_files = [
-    "node_modules/.prisma/**",
-    "node_modules/@prisma/client/**"
+    "node_modules/.pnpm/@prisma+client*/node_modules/.prisma/**",
+    "node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client/**"
   ]
