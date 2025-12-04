@@ -1,7 +1,0 @@
-{
-  "name": "main-function",
-  "version": "1.0.0",
-  "main": "lambda.js",
-  "scripts": {},
-  "dependencies": {}
-}

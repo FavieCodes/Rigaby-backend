@@ -1,19 +1,21 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from '../../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as express from 'express';
+import * as serverless from 'serverless-http';
 import helmet from 'helmet';
 
-const server = express();
-let app;
+let cachedServer;
 
-async function createApp() {
-  if (!app) {
-    app = await NestFactory.create(
+async function bootstrap() {
+  if (!cachedServer) {
+    const expressApp = express();
+    
+    const app = await NestFactory.create(
       AppModule,
-      new ExpressAdapter(server),
+      new ExpressAdapter(expressApp),
       {
         logger: ['error', 'warn', 'log'],
       },
@@ -21,7 +23,7 @@ async function createApp() {
 
     app.setGlobalPrefix('api/v1');
     app.use(helmet());
-    
+
     app.enableCors({
       origin: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -62,11 +64,13 @@ async function createApp() {
     });
 
     await app.init();
+    cachedServer = serverless(expressApp);
   }
-  return server;
+
+  return cachedServer;
 }
 
-export default async (req, res) => {
-  await createApp();
-  return server(req, res);
+export const handler = async (event, context) => {
+  const server = await bootstrap();
+  return server(event, context);
 };
