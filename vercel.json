@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "dist/serverless.js"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/dist/serverless"
+    }
   ]
 }

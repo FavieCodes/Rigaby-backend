@@ -19,7 +19,9 @@ async function createApp() {
       },
     );
 
-    app.setGlobalPrefix('api/v1');
+    // Remove or adjust the global prefix for serverless
+    // app.setGlobalPrefix('api/v1'); // Remove this line
+    
     app.use(helmet());
     
     app.enableCors({
